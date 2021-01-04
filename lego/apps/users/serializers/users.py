@@ -1,15 +1,17 @@
+from django.utils import timezone
 from rest_framework import exceptions, serializers
 
 from lego.apps.files.fields import ImageField
 from lego.apps.ical.models import ICalToken
 from lego.apps.users import constants
-from lego.apps.users.models import AbakusGroup, Penalty, User
+from lego.apps.users.models import AbakusGroup, Penalty, PhotoConsent, User
 from lego.apps.users.serializers.abakus_groups import PublicAbakusGroupSerializer
 from lego.apps.users.serializers.memberships import (
     MembershipSerializer,
     PastMembershipSerializer,
 )
 from lego.apps.users.serializers.penalties import PenaltySerializer
+from lego.apps.users.serializers.photo_consents import PhotoConsentSerializer
 from lego.utils.fields import PrimaryKeyRelatedFieldNoPKOpt
 
 
@@ -92,7 +94,17 @@ class AdministrateUserSerializer(PublicUserSerializer):
     """
 
     class Meta(PublicUserSerializer.Meta):
-        fields = PublicUserSerializer.Meta.fields + ("abakus_groups", "allergies",)
+        fields = PublicUserSerializer.Meta.fields + (
+            "abakus_groups",
+            "allergies",
+            "photo_consents",
+        )
+
+    photo_consents = serializers.SerializerMethodField()
+
+    def get_photo_consents(self, user):
+        pc = PhotoConsent.get_consents(self, user)
+        return PhotoConsentSerializer(instance=pc, many=True).data
 
 
 class AdministrateUserExportSerializer(PublicUserSerializer):
@@ -179,6 +191,7 @@ class MeSerializer(serializers.ModelSerializer):
     is_student = serializers.SerializerMethodField()
     is_abakus_member = serializers.BooleanField()
     past_memberships = PastMembershipSerializer(many=True)
+    photo_consents = serializers.SerializerMethodField()
 
     def get_user_ical_token(self, user):
         ical_token = ICalToken.objects.get_or_create(user=user)[0]
@@ -188,6 +201,10 @@ class MeSerializer(serializers.ModelSerializer):
         qs = Penalty.objects.valid().filter(user=user)
         serializer = PenaltySerializer(instance=qs, many=True)
         return serializer.data
+
+    def get_photo_consents(self, user):
+        pc = PhotoConsent.get_consents(self, user)
+        return PhotoConsentSerializer(instance=pc, many=True).data
 
     def get_is_student(self, user):
         return user.is_verified_student()
@@ -235,6 +252,7 @@ class MeSerializer(serializers.ModelSerializer):
             "internal_email_address",
             "selected_theme",
             "permissions_per_group",
+            "photo_consents",
         )
 
 
