@@ -378,12 +378,14 @@ class User(
             return "default_other_avatar.png"
 
     def delete(self, using=None, force=False):
+        from lego.apps.events import constants
         from lego.apps.events.models import Event
 
         if force:
             for event in Event.objects.all():
                 if event.is_admitted(self):
-                    event.add_legacy_registration()
+                    if event.registrations.get(user=self).presence == constants.PRESENT:
+                        event.add_legacy_registration()
         super(User, self).delete(using=using, force=force)
 
     @property
