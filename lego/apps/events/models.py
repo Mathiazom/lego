@@ -727,7 +727,6 @@ class Event(Content, BasisModel, ObjectPermissionsModel):
         return [registration.user for registration in registrations]
 
     def add_legacy_registration(self):
-        constants.PRESENT,
         self.legacy_registration_count += 1
         self.save()
 
