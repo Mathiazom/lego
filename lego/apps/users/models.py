@@ -382,10 +382,12 @@ class User(
         from lego.apps.events.models import Event
 
         if force:
-            for event in Event.objects.all():
-                if event.is_admitted(self):
-                    if event.registrations.get(user=self).presence == constants.PRESENT:
-                        event.add_legacy_registration()
+            for event in Event.objects.filter(
+                Q(registrations__user=self)
+                & Q(registrations__pool__isnull=False)
+                & Q(registrations__presence=constants.PRESENT)
+            ):
+                event.add_legacy_registration()
         super(User, self).delete(using=using, force=force)
 
     @property
