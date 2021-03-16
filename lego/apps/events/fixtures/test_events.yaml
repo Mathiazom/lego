@@ -80,7 +80,7 @@
 - model: events.Event
   pk: 6
   fields:
-    title: ABAKOM_ONLY
+    title: GROUP_ONLY
     description: TestIngress6
     text: TestText6
     event_type: 0

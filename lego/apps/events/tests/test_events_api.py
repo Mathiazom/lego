@@ -38,7 +38,7 @@ _test_event_data = [
         "startTime": "2011-09-01T13:20:30Z",
         "endTime": "2012-09-01T13:20:30Z",
         "mergeTime": "2012-01-01T13:20:30Z",
-        "isAbakomOnly": False,
+        "groupsWithViewPermission": [],
         "pools": [
             {
                 "name": "Initial Pool",
@@ -58,7 +58,7 @@ _test_event_data = [
         "startTime": "2015-09-01T13:20:30Z",
         "endTime": "2015-09-01T13:20:30Z",
         "mergeTime": "2016-01-01T13:20:30Z",
-        "isAbakomOnly": True,
+        "groupsWithViewPermission": [20],
         "pools": [
             {
                 "name": "Initial Pool 1",
@@ -84,7 +84,7 @@ _test_event_data = [
         "startTime": "2015-09-01T13:20:30Z",
         "endTime": "2015-09-01T13:20:30Z",
         "mergeTime": "2016-01-01T13:20:30Z",
-        "isAbakomOnly": True,
+        "groupsWithViewPermission": [20],
         "pools": [
             {
                 "name": "Initial Pool 1",
@@ -104,7 +104,7 @@ _test_event_data = [
         "startTime": "2015-09-01T13:20:30Z",
         "endTime": "2015-09-01T13:20:30Z",
         "mergeTime": "2016-01-01T13:20:30Z",
-        "isAbakomOnly": True,
+        "groupsWithViewPermission": [20],
         "pools": [
             {
                 "name": "Initial Pool 1",
@@ -124,7 +124,7 @@ _test_event_data = [
         "startTime": "2015-09-01T13:20:30Z",
         "endTime": "2015-09-01T13:20:30Z",
         "mergeTime": "2016-01-01T13:20:30Z",
-        "isAbakomOnly": True,
+        "groupsWithViewPermission": [20],
         "pools": [
             {
                 "name": "Initial Pool 1",
@@ -143,7 +143,7 @@ _test_event_data = [
         "startTime": "2015-09-01T13:20:30Z",
         "endTime": "2015-09-01T13:20:30Z",
         "mergeTime": "2016-01-01T13:20:30Z",
-        "isAbakomOnly": True,
+        "groupsWithViewPermission": [20],
         "pools": [
             {
                 "name": "Initial Pool 1",
@@ -302,24 +302,24 @@ class RetrieveEventsTestCase(BaseAPITestCase):
         for pool in event_response.json()["pools"]:
             self.assertIsNotNone(pool.get("registrations", None))
 
-    def test_without_auth_permission_abakom_only(self):
+    def test_without_auth_permission_group_only(self):
         """Test that unauth user cannot retrieve abakom only event"""
-        event = Event.objects.get(title="ABAKOM_ONLY")
+        event = Event.objects.get(title="GROUP_ONLY")
         self.client.force_authenticate(self.abakus_user)
         event_response = self.client.get(_get_detail_url(event.id))
         self.assertEqual(event_response.status_code, 404)
 
-    def test_without_group_permission_abakom_only(self):
+    def test_without_group_permission_group_only(self):
         """Test that auth user cannot retrieve abakom only event"""
-        event = Event.objects.get(title="ABAKOM_ONLY")
+        event = Event.objects.get(title="GROUP_ONLY")
         self.client.force_authenticate(self.abakus_user)
         event_response = self.client.get(_get_detail_url(event.id))
         self.assertEqual(event_response.status_code, 404)
 
-    def test_with_group_permission_abakom_only(self):
+    def test_with_group_permission_group_only(self):
         """Test that abakom user can retrieve abakom only event"""
         AbakusGroup.objects.get(name="Bedkom").add_user(self.abakus_user)
-        event = Event.objects.get(title="ABAKOM_ONLY")
+        event = Event.objects.get(title="GROUP_ONLY")
         self.client.force_authenticate(self.abakus_user)
         event_response = self.client.get(_get_detail_url(event.id))
         self.assertEqual(event_response.status_code, 200)
@@ -493,7 +493,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         created_event = Event.objects.get(id=self.event_id)
@@ -522,7 +522,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         created_event = Event.objects.get(id=event_id)
@@ -546,7 +546,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "location",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         created_event = Event.objects.get(id=self.event_id)
@@ -569,7 +569,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "location",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         created_event = Event.objects.get(id=self.event_id)
@@ -614,7 +614,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         updated_event = Event.objects.get(id=self.event_id)
@@ -660,7 +660,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         event = Event.objects.get(id=self.event_id)
@@ -685,7 +685,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
 
@@ -717,7 +717,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
 
@@ -744,7 +744,7 @@ class CreateEventsTestCase(BaseAPITestCase):
             "startTime",
             "endTime",
             "mergeTime",
-            "isAbakomOnly",
+            "groupsWithViewPermission",
         ]:
             self.assertEqual(res_event[key], expect_event[key])
         event = Event.objects.get(id=self.event_id)

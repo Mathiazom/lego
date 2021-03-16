@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import BooleanField, CharField
@@ -28,6 +28,7 @@ from lego.apps.tags.serializers import TagSerializerMixin
 from lego.apps.users.constants import GROUP_GRADE
 from lego.apps.users.fields import AbakusGroupField
 from lego.apps.users.models import AbakusGroup
+from lego.apps.users.serializers.abakus_groups import AbakusGroupNameSerializer
 from lego.apps.users.serializers.users import PublicUserSerializer
 from lego.utils.serializers import BasisModelSerializer
 
@@ -102,6 +103,8 @@ class EventReadDetailedSerializer(TagSerializerMixin, BasisModelSerializer):
     text = ContentSerializerField()
     created_by = PublicUserSerializer()
 
+    groups_with_view_permission = AbakusGroupNameSerializer(many=True)
+
     registration_close_time = serializers.DateTimeField(read_only=True)
     unregistration_close_time = serializers.DateTimeField(read_only=True)
 
@@ -143,7 +146,7 @@ class EventReadDetailedSerializer(TagSerializerMixin, BasisModelSerializer):
             "is_merged",
             "heed_penalties",
             "created_by",
-            "is_abakom_only",
+            "groups_with_view_permission",
             "registration_count",
             "survey",
             "use_consent",
@@ -248,7 +251,6 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
     )
     pools = PoolCreateAndUpdateSerializer(many=True, required=False)
     text = ContentSerializerField()
-    is_abakom_only = BooleanField(required=False, default=False)
 
     registration_close_time = serializers.DateTimeField(read_only=True)
     unregistration_close_time = serializers.DateTimeField(read_only=True)
@@ -284,7 +286,7 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
             "pinned",
             "use_consent",
             "heed_penalties",
-            "is_abakom_only",
+            "groups_with_view_permission",
             "registration_deadline_hours",
             "registration_close_time",
             "unregistration_close_time",
@@ -319,7 +321,9 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
 
     def create(self, validated_data):
         pools = validated_data.pop("pools", [])
-        is_abakom_only = validated_data.pop("is_abakom_only", False)
+        groups_with_view_permission = validated_data.pop(
+            "groups_with_view_permission", []
+        )
         event_status_type = validated_data.get(
             "event_status_type", Event._meta.get_field("event_status_type").default
         )
@@ -337,12 +341,14 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
                 permission_groups = pool.pop("permission_groups")
                 created_pool = Pool.objects.create(event=event, **pool)
                 created_pool.permission_groups.set(permission_groups)
-            event.set_abakom_only(is_abakom_only)
+            event.set_groups_with_view_permission(groups_with_view_permission)
             return event
 
     def update(self, instance, validated_data):
         pools = validated_data.pop("pools", None)
-        is_abakom_only = validated_data.pop("is_abakom_only", False)
+        groups_with_view_permission = validated_data.pop(
+            "groups_with_view_permission", []
+        )
         event_status_type = validated_data.get(
             "event_status_type", Event._meta.get_field("event_status_type").default
         )
@@ -374,7 +380,7 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
                     created_pool.permission_groups.set(permission_groups)
                 for pool_id in existing_pools:
                     Pool.objects.get(id=pool_id).delete()
-            instance.set_abakom_only(is_abakom_only)
+            instance.set_groups_with_view_permission(groups_with_view_permission)
             return super().update(instance, validated_data)
 
 
