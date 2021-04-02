@@ -103,7 +103,7 @@ class EventReadDetailedSerializer(TagSerializerMixin, BasisModelSerializer):
     text = ContentSerializerField()
     created_by = PublicUserSerializer()
 
-    groups_with_view_permission = AbakusGroupNameSerializer(many=True)
+    can_view_groups = AbakusGroupNameSerializer(many=True)
 
     registration_close_time = serializers.DateTimeField(read_only=True)
     unregistration_close_time = serializers.DateTimeField(read_only=True)
@@ -146,7 +146,7 @@ class EventReadDetailedSerializer(TagSerializerMixin, BasisModelSerializer):
             "is_merged",
             "heed_penalties",
             "created_by",
-            "groups_with_view_permission",
+            "can_view_groups",
             "registration_count",
             "survey",
             "use_consent",
@@ -286,7 +286,7 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
             "pinned",
             "use_consent",
             "heed_penalties",
-            "groups_with_view_permission",
+            "can_view_groups",
             "registration_deadline_hours",
             "registration_close_time",
             "unregistration_close_time",
@@ -321,9 +321,7 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
 
     def create(self, validated_data):
         pools = validated_data.pop("pools", [])
-        groups_with_view_permission = validated_data.pop(
-            "groups_with_view_permission", []
-        )
+        can_view_groups = validated_data.pop("can_view_groups", [])
         event_status_type = validated_data.get(
             "event_status_type", Event._meta.get_field("event_status_type").default
         )
@@ -341,14 +339,12 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
                 permission_groups = pool.pop("permission_groups")
                 created_pool = Pool.objects.create(event=event, **pool)
                 created_pool.permission_groups.set(permission_groups)
-            event.set_groups_with_view_permission(groups_with_view_permission)
+            event.set_can_view_groups(can_view_groups)
             return event
 
     def update(self, instance, validated_data):
         pools = validated_data.pop("pools", None)
-        groups_with_view_permission = validated_data.pop(
-            "groups_with_view_permission", []
-        )
+        can_view_groups = validated_data.pop("can_view_groups", [])
         event_status_type = validated_data.get(
             "event_status_type", Event._meta.get_field("event_status_type").default
         )
@@ -380,7 +376,7 @@ class EventCreateAndUpdateSerializer(TagSerializerMixin, BasisModelSerializer):
                     created_pool.permission_groups.set(permission_groups)
                 for pool_id in existing_pools:
                     Pool.objects.get(id=pool_id).delete()
-            instance.set_groups_with_view_permission(groups_with_view_permission)
+            instance.set_can_view_groups(can_view_groups)
             return super().update(instance, validated_data)
 
 

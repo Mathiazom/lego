@@ -198,7 +198,7 @@ class IcalEventsTestCase(BaseAPITestCase):
             activation_date=(timezone.now() + timedelta(hours=3)),
         )
         self.pool.permission_groups.add(AbakusGroup.objects.get(name="Abakom"))
-        self.event.set_groups_with_view_permission(["Abakom"])
+        self.event.set_can_view_groups(["Abakom"])
 
     def test_non_abakom_user(self):
         for url in [self.events_url, self.registrations_url]:
@@ -206,7 +206,7 @@ class IcalEventsTestCase(BaseAPITestCase):
             self.assertEqual(len(ical_events), 0)
 
     def test_public_event_can_register(self):
-        self.event.set_groups_with_view_permission([])
+        self.event.can_view_groups([])
         self.pool.permission_groups.add(AbakusGroup.objects.get(name="Abakus"))
         for url in [self.events_url, self.registrations_url]:
 
@@ -217,7 +217,7 @@ class IcalEventsTestCase(BaseAPITestCase):
             self.assertEqual(int(pk), self.event.pk)
 
     def test_public_event_can_view_not_register(self):
-        self.event.set_groups_with_view_permission([])
+        self.event.set_can_view_groups([])
         ical_events = _get_ical_events(self.events_url, self.client)
         self.assertEqual(len(ical_events), 1)
 

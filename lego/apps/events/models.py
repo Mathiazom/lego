@@ -50,7 +50,7 @@ class Event(Content, BasisModel, ObjectPermissionsModel):
     )
     location = models.CharField(max_length=100)
     cover = FileField(related_name="event_covers")
-    groups_with_view_permission = models.ManyToManyField(AbakusGroup, blank=True)
+    can_view_groups = models.ManyToManyField(AbakusGroup, blank=True)
     start_time = models.DateTimeField(db_index=True)
     end_time = models.DateTimeField()
     merge_time = models.DateTimeField(null=True)
@@ -692,17 +692,15 @@ class Event(Content, BasisModel, ObjectPermissionsModel):
     def waiting_registration_count(self):
         return self.waiting_registrations.count()
 
-    def set_groups_with_view_permission(self, groups_with_view_permission):
-        if len(groups_with_view_permission) > 0:
-            self.groups_with_view_permission.clear()
+    def set_can_view_groups(self, can_view_groups):
+        if len(can_view_groups) > 0:
+            self.can_view_groups.clear()
             self.require_auth = True
-            for group in groups_with_view_permission:
+            for group in can_view_groups:
                 abakus_group = AbakusGroup.objects.get(name=group)
-                self.groups_with_view_permission.add(abakus_group)
                 self.can_view_groups.add(abakus_group)
         else:
             self.require_auth = False
-            self.groups_with_view_permission.clear()
             self.can_view_groups.clear()
         self.save()
 
