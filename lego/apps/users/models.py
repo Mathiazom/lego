@@ -382,12 +382,16 @@ class User(
         from lego.apps.events.models import Event
 
         if force:
+            current_time = timezone.now()
             for event in Event.objects.filter(
-                Q(registrations__user=self)
-                & Q(registrations__pool__isnull=False)
-                & Q(registrations__presence=constants.PRESENT)
+                Q(registrations__user=self) & Q(registrations__pool__isnull=False)
             ):
-                event.add_legacy_registration()
+                # If the event has been, add legacy count
+                if event.unregistration_close_time < current_time:
+                    event.add_legacy_registration()
+                # Else unregister user
+                else:
+                    event.unregister(event.registrations.get(user=self))
         super(User, self).delete(using=using, force=force)
 
     @property
