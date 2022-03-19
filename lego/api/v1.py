@@ -35,7 +35,11 @@ from lego.apps.followers.views import (
     FollowUserViewSet,
 )
 from lego.apps.frontpage.views import FrontpageViewSet
-from lego.apps.gallery.views import GalleryPictureViewSet, GalleryViewSet
+from lego.apps.gallery.views import (
+    GalleryPictureAllViewSet,
+    GalleryPictureViewSet,
+    GalleryViewSet,
+)
 from lego.apps.ical.viewsets import ICalTokenViewset, ICalViewset
 from lego.apps.joblistings.views import JoblistingViewSet
 from lego.apps.meetings.views import (
@@ -143,6 +147,7 @@ router.register(r"followers-user", FollowUserViewSet)
 router.register(r"frontpage", FrontpageViewSet, basename="frontpage")
 router.register(r"galleries", GalleryViewSet)
 router.register(r"galleries/(?P<gallery_pk>\d+)/pictures", GalleryPictureViewSet)
+router.register(r"galleries/(?P<gallery_pk>\d+)/pictures-all", GalleryPictureAllViewSet)
 router.register(r"groups", AbakusGroupViewSet)
 router.register(
     r"groups/(?P<group_pk>\d+)/memberships",

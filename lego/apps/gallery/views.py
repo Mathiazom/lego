@@ -84,3 +84,7 @@ class GalleryPictureViewSet(viewsets.ModelViewSet):
             return queryset.filter(gallery_id=gallery_id)
 
         return GalleryPicture.objects.none()
+
+
+class GalleryPictureAllViewSet(GalleryPictureViewSet):
+    pagination_class = None
